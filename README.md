@@ -399,19 +399,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="Screenshot-2026-02-08_18:36:22.png" alt="Desktop Preview 1" width="100%"/>
+  <img src="https://raw.githubusercontent.com/mohammedbakri123/My_dots/master/Screenshot-2026-02-08_18%3A36%3A22.png" alt="Desktop Preview 1" width="100%"/>
   <br/>
   <em>Clean desktop with dynamic theming</em>
 </p>
 
 <p align="center">
-  <img src="Screenshot-2026-02-08_18:38:46.png" alt="Desktop Preview 2" width="100%"/>
+  <img src="https://raw.githubusercontent.com/mohammedbakri123/My_dots/master/Screenshot-2026-02-08_18%3A38%3A46.png" alt="Desktop Preview 2" width="100%"/>
   <br/>
   <em>Application workflow and window management</em>
 </p>
 
 <p align="center">
-  <img src="Screenshot-2026-02-08_18:39:25.png" alt="Desktop Preview 3" width="100%"/>
+  <img src="https://raw.githubusercontent.com/mohammedbakri123/My_dots/master/Screenshot-2026-02-08_18%3A39%3A25.png" alt="Desktop Preview 3" width="100%"/>
   <br/>
   <em>Rofi launcher and system menus</em>
 </p>
