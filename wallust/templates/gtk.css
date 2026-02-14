@@ -1,0 +1,4 @@
+@define-color theme_bg_color {background};
+@define-color theme_fg_color {foreground};
+@define-color theme_selected_bg_color {color2};
+@define-color theme_selected_fg_color {foreground};

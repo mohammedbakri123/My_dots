@@ -1,0 +1,167 @@
+#!/bin/bash
+# Monitor Layout Manager
+# Save and restore monitor configurations
+
+CONFIG_DIR="$HOME/.config/hypr/monitors"
+mkdir -p "$CONFIG_DIR"
+
+# Get current monitor layout
+get_current_layout() {
+    hyprctl monitors all | grep -E "^Monitor|resolution|at|scale"
+}
+
+# Save current layout
+save_layout() {
+    local name="${1:-default}"
+    local file="$CONFIG_DIR/${name}.conf"
+    
+    echo "# Monitor layout: $name" > "$file"
+    echo "# Saved: $(date)" >> "$file"
+    echo "" >> "$file"
+    
+    # Get monitor configurations
+    hyprctl monitors -j | jq -r '.[] | 
+        "monitor=" + .name + "," + 
+        (.width | tostring) + "x" + (.height | tostring) + "@" + (.refreshRate | tostring) + 
+        "," + (.x | tostring) + "x" + (.y | tostring) + 
+        "," + (.scale | tostring)'
+    >> "$file"
+    
+    notify-send "Monitor layout saved" "Layout: $name"
+    echo "Saved layout to: $file"
+}
+
+# Load layout
+load_layout() {
+    local name="$1"
+    local file="$CONFIG_DIR/${name}.conf"
+    
+    if [ ! -f "$file" ]; then
+        echo "Error: Layout '$name' not found"
+        echo "Available layouts:"
+        list_layouts
+        exit 1
+    fi
+    
+    # Apply monitor configurations
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^monitor= ]]; then
+            hyprctl keyword "$line"
+        fi
+    done < "$file"
+    
+    notify-send "Monitor layout loaded" "Layout: $name"
+}
+
+# Delete layout
+delete_layout() {
+    local name="$1"
+    local file="$CONFIG_DIR/${name}.conf"
+    
+    if [ ! -f "$file" ]; then
+        echo "Error: Layout '$name' not found"
+        exit 1
+    fi
+    
+    rm "$file"
+    notify-send "Monitor layout deleted" "Layout: $name"
+}
+
+# List available layouts
+list_layouts() {
+    echo "Available monitor layouts:"
+    for file in "$CONFIG_DIR"/*.conf; do
+        if [ -f "$file" ]; then
+            name=$(basename "$file" .conf)
+            date=$(head -2 "$file" | tail -1 | sed 's/# Saved: //')
+            echo "  • $name ($date)"
+        fi
+    done
+}
+
+# Interactive menu with rofi
+rofi_menu() {
+    local options="📋 List layouts\n💾 Save current layout\n📂 Load layout"
+    
+    local chosen=$(echo -e "$options" | rofi -dmenu -i -p "Monitor Layout" -theme-str 'window {width: 20%;}')
+    
+    case "$chosen" in
+        "📋 List layouts")
+            list_layouts | rofi -dmenu -i -p "Layouts"
+            ;;
+        "💾 Save current layout")
+            local name=$(echo "" | rofi -dmenu -p "Layout name" -theme-str 'window {width: 20%;}')
+            if [ -n "$name" ]; then
+                save_layout "$name"
+            fi
+            ;;
+        "📂 Load layout")
+            local layout=$(for f in "$CONFIG_DIR"/*.conf; do basename "$f" .conf; done | rofi -dmenu -i -p "Select layout" -theme-str 'window {width: 20%;}')
+            if [ -n "$layout" ]; then
+                load_layout "$layout"
+            fi
+            ;;
+    esac
+}
+
+# Show help
+show_help() {
+    cat << EOF
+Monitor Layout Manager
+
+Usage: $(basename "$0") <command> [args]
+
+Commands:
+  save [name]          Save current monitor layout (default: 'default')
+  load <name>          Load a saved layout
+  delete <name>        Delete a saved layout
+  list                 List all saved layouts
+  menu                 Open rofi menu
+  current              Show current layout
+
+Examples:
+  $(basename "$0") save work-setup
+  $(basename "$0") load work-setup
+  $(basename "$0") menu
+
+Layouts are stored in: $CONFIG_DIR
+EOF
+}
+
+# Main
+case "${1:-menu}" in
+    save)
+        save_layout "${2:-default}"
+        ;;
+    load)
+        if [ -z "$2" ]; then
+            echo "Error: Layout name required"
+            exit 1
+        fi
+        load_layout "$2"
+        ;;
+    delete)
+        if [ -z "$2" ]; then
+            echo "Error: Layout name required"
+            exit 1
+        fi
+        delete_layout "$2"
+        ;;
+    list)
+        list_layouts
+        ;;
+    menu)
+        rofi_menu
+        ;;
+    current)
+        get_current_layout
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        echo "Unknown command: $1"
+        show_help
+        exit 1
+        ;;
+esac

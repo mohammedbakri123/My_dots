@@ -1,0 +1,63 @@
+
+@import url("/home/mohammed/.cache/wallust/colors-waybar.css");
+
+/* Global */
+* {
+  font-family: JetBrains Mono, Symbols Nerd Font;
+  font-size: 14px;
+  border: none;
+  min-height: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+window#waybar {
+  background: transparent;
+}
+
+/* Island Components */
+#custom-arch,
+#custom-datetime,
+#network,
+#bluetooth,
+#cpu,
+#battery,
+#taskbar,
+#workspaces,
+#custom-power,
+#custom-battery_profile {
+  background: @background;
+  /* background: @foreground; */
+  color: @color4;
+  padding: 6px 14px;
+  margin: 4px 6px;
+  border-radius: 14px;
+  
+}
+#custom-arch ,#hyprland-window{
+  color: @color3;
+}
+
+
+
+/* Workspaces */
+#workspaces button {
+  background: transparent;
+  color: @color3;
+}
+
+#workspaces button.active {
+  color: @foreground;
+  background: @color3;
+  border-radius: 10px;
+}
+
+/* Taskbar icons */
+#taskbar button {
+  padding: 4px;
+  background: transparent;
+}
+
+#taskbar button.active {
+  background: @color3;
+  border-radius: 10px;
+}

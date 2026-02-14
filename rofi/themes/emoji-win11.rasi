@@ -1,0 +1,55 @@
+* {
+    font: "Segoe UI 11";
+    bg: #1e1e1e;
+    bg-alt: #252525;
+    fg: #eaeaea;
+    fg-alt: #b0b0b0;
+    accent: #60cdff;
+    border-radius: 12px;
+}
+
+window {
+    width: 420px;
+    padding: 12px;
+    background-color: @bg;
+    border-radius: @border-radius;
+}
+
+inputbar {
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: @bg-alt;
+    border-radius: 10px;
+}
+
+prompt {
+    text-color: @fg-alt;
+}
+
+entry {
+    text-color: @fg;
+}
+
+listview {
+    lines: 10;
+    spacing: 6px;
+    scrollbar: false;
+}
+
+element {
+    padding: 10px;
+    border-radius: 10px;
+    background-color: transparent;
+}
+
+element-text {
+    text-color: @fg;
+}
+
+element selected {
+    background-color: @accent;
+}
+
+element selected element-text {
+    text-color: #000000;
+}

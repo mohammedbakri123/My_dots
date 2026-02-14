@@ -1,0 +1,10 @@
+action = "copy"
+clipboard_cmd = "wl-copy"
+
+use_unicode_names = true
+show_categories = true
+
+selector = "rofi -dmenu -i -theme ~/.config/rofi/themes/emoji-win11.rasi -p emoji"
+
+skin_tone = "neutral"
+

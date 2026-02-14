@@ -1,0 +1,9 @@
+#!/bin/bash
+
+EMOJI_FILE="/usr/share/rofi-emoji/all_emojis.txt"
+
+[ ! -f "$EMOJI_FILE" ] && exit 1
+
+chosen=$(cut -d ' ' -f1 "$EMOJI_FILE" | wofi --dmenu --prompt "Emoji")
+
+[ -n "$chosen" ] && printf "%s" "$chosen" | wl-copy

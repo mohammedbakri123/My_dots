@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+IN="$HOME/.cache/wallust/hyprland.hex"
+OUT="$HOME/.cache/wallust/hyprland.conf"
+
+hex_to_rgba() {
+  local h="${1#\#}"
+  echo "rgba(${h}FF)"
+}
+
+echo "# Generated for Hyprland" > "$OUT"
+
+while read -r line; do
+  [[ -z "$line" ]] && continue
+  name="${line%%=*}"
+  hex="${line#*= }"
+  echo "$name = $(hex_to_rgba "$hex")" >> "$OUT"
+done < "$IN"

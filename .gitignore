@@ -1,0 +1,41 @@
+# Git ignore for dotfiles
+
+# Backup files
+*.backup.*
+*.bak
+*~
+
+# Cache
+.cache/
+cache/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Local configs (should not be committed)
+*.local
+
+# Sensitive data
+.env
+secrets/
+*.key
+*.pem
+
+# Don't ignore these
+!systemd/user/*.service
+!.git/hooks/pre-commit

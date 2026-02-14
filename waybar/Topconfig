@@ -1,0 +1,119 @@
+
+
+{
+  "layer": "top",
+  "position": "top",
+  "height": 36,
+  "margin-top": 8,
+  "margin-left": 12,
+  "margin-right": 12,
+
+  "modules-left": [
+    "custom/arch",
+    "custom/datetime",
+    "hyprland/window"
+  ],
+
+  "modules-center": [
+    "hyprland/workspaces"
+  ],
+
+  "modules-right": [
+    "custom/powerprofile",
+    "network",
+    "bluetooth",
+    "cpu",
+    "battery",
+    "custom/power"
+  ],
+
+  "custom/arch": {
+    "format": "",
+    "on-click": "rofi -show drun",
+    "tooltip": false
+  },
+
+  "custom/datetime": {
+    "exec": "date '+%a %d %b  %H:%M'",
+    "interval": 30,
+    "tooltip": false
+  },
+
+  "hyprland/window": {
+    "format": "  {title}",
+    "max-length": 40,
+    "separate-outputs": true,
+    "tooltip": false
+  },
+
+  "hyprland/workspaces": {
+    "format": "{name}",
+    "persistent-workspaces": {
+      "*": [1, 2, 3, 4, 5]
+    }
+  },
+
+  "custom/powerprofile": {
+    "exec": "powerprofilesctl get",
+    "interval": 5,
+    "format": "{icon}",
+    "format-icons": {
+      "performance": "󰓅",
+      "balanced": "󰾅",
+      "power-saver": "󰌪"
+    },
+    "on-click": "~/.config/waybar/scripts/powerprofile.sh",
+    "tooltip": true
+  },
+
+  "network": {
+    "format-wifi": "󰤨",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰤭",
+    "tooltip-format": "{essid} ({signalStrength}%)",
+    "on-click": "~/.config/waybar/scripts/wifi.sh"
+  },
+
+  "bluetooth": {
+    "format": "󰂯",
+    "format-connected": "󰂱",
+    "format-disabled": "󰂲",
+    "tooltip": false,
+    "on-click": "~/.config/waybar/scripts/bluetooth.sh"
+  },
+
+  "cpu": {
+    "interval": 3,
+    "format": "󰍛 {usage}%",
+    "on-click": "  kitty --class waybar-popup --title btop btop"
+  },
+
+  "battery": {
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": "⚡",
+    "format-plugged": "⚡",
+    "format-icons": [
+      "󰁺",
+      "󰁻",
+      "󰁼",
+      "󰁽",
+      "󰁾",
+      "󰁿",
+      "󰂀",
+      "󰂁",
+      "󰂂",
+      "󰁹"
+    ],
+    "tooltip-format": "{capacity}%"
+  },
+
+  "custom/power": {
+    "format": "󰐥",
+    "on-click": "wlogout",
+    "tooltip": false
+  }
+}

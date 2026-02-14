@@ -1,0 +1,56 @@
+@import url("/home/mohammed/.cache/wallust/colors-swaync.css");
+
+* {
+  font-family: JetBrainsMono Nerd Font;
+  font-size: 13px;
+}
+
+.control-center {
+  background: rgba(0, 0, 0, 0.45);  
+border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+ min-width: 360px;
+  max-width: 380px;
+}
+
+/* Notifications */
+.notification {
+  background: rgba(255, 255, 255, 0.045);  
+border-radius: 10px;
+  margin: 5px 0  ;
+  padding: 8px;
+  border-left: 4px solid @color4;
+}
+
+/* Title */
+.notification-title {
+  font-weight: bold;
+  color: @foreground;
+}
+
+/* Body */
+.notification-body {
+  color: @foreground;
+  opacity: 0.9;
+}
+
+/* Urgency levels */
+.notification.critical {
+  border-left-color: #f38ba8;
+}
+
+.notification.low {
+  opacity: 0.85;
+}
+
+/* Buttons */
+.notification-action {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.notification-action:hover {
+  background: rgba(255, 255, 255, 0.15);
+}

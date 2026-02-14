@@ -1,0 +1,263 @@
+#!/bin/bash
+# Enhanced Clipboard Manager with search and persistence
+
+CLIP_DIR="$HOME/.local/share/clipboard-history"
+CLIP_DB="$CLIP_DIR/history.db"
+MAX_ENTRIES=1000
+
+mkdir -p "$CLIP_DIR"
+
+# Initialize database if needed
+init_db() {
+    if [ ! -f "$CLIP_DB" ]; then
+        sqlite3 "$CLIP_DB" << EOF
+CREATE TABLE IF NOT EXISTS clipboard (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    content TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    content_type TEXT DEFAULT 'text',
+    pinned INTEGER DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_timestamp ON clipboard(timestamp);
+CREATE INDEX IF NOT EXISTS idx_pinned ON clipboard(pinned);
+EOF
+    fi
+}
+
+# Check if sqlite3 is available
+check_deps() {
+    if ! command -v sqlite3 &> /dev/null; then
+        notify-send "Clipboard Manager Error" "sqlite3 is required but not installed"
+        exit 1
+    fi
+}
+
+# Store clipboard entry
+store_entry() {
+    local content="$1"
+    local type="${2:-text}"
+    
+    # Don't store empty content
+    [ -z "$content" ] && return
+    
+    # Don't store duplicates (check last 50 entries)
+    local last_entries=$(sqlite3 "$CLIP_DB" "SELECT content FROM clipboard ORDER BY timestamp DESC LIMIT 50;")
+    if echo "$last_entries" | grep -Fxq "$content"; then
+        # Update timestamp of existing entry
+        sqlite3 "$CLIP_DB" "UPDATE clipboard SET timestamp = CURRENT_TIMESTAMP WHERE content = ?;" <<< "$content"
+        return
+    fi
+    
+    # Insert new entry
+    sqlite3 "$CLIP_DB" "INSERT INTO clipboard (content, content_type) VALUES (?, ?);" <<< "$content"$'\t'"$type"
+    
+    # Trim old entries (keep only MAX_ENTRIES unpinned)
+    sqlite3 "$CLIP_DB" << EOF
+DELETE FROM clipboard 
+WHERE id NOT IN (
+    SELECT id FROM clipboard 
+    WHERE pinned = 1 
+    ORDER BY timestamp DESC 
+    LIMIT $MAX_ENTRIES
+) 
+AND pinned = 0
+AND id NOT IN (
+    SELECT id FROM clipboard 
+    WHERE pinned = 0 
+    ORDER BY timestamp DESC 
+    LIMIT $MAX_ENTRIES
+);
+EOF
+}
+
+# Show clipboard history with rofi
+show_history() {
+    init_db
+    check_deps
+    
+    # Get entries from database
+    local entries=$(sqlite3 "$CLIP_DB" << EOF
+SELECT 
+    CASE 
+        WHEN pinned = 1 THEN '📌 '
+        ELSE ''
+    END || 
+    substr(content, 1, 80) || 
+    CASE 
+        WHEN length(content) > 80 THEN '...'
+        ELSE ''
+    END as display,
+    id,
+    pinned
+FROM clipboard 
+ORDER BY pinned DESC, timestamp DESC 
+LIMIT 100;
+EOF
+)
+    
+    if [ -z "$entries" ]; then
+        notify-send "Clipboard" "History is empty"
+        return
+    fi
+    
+    # Show rofi menu
+    local selected=$(echo "$entries" | cut -d'|' -f1 | rofi -dmenu -i -p "Clipboard" -theme-str 'window {width: 60%;}' -mesg "Type to search | Alt+p to pin/unpin | Alt+d to delete")
+    
+    [ -z "$selected" ] && return
+    
+    # Handle special keys
+    local rofi_exit=${ROFI_RETV:-0}
+    
+    # Get the full content
+    local content=$(sqlite3 "$CLIP_DB" "SELECT content FROM clipboard WHERE substr(content, 1, 80) = ?;" <<< "${selected#📌 }")
+    
+    case "$rofi_exit" in
+        10)  # Alt+p - Pin/unpin
+            local id=$(sqlite3 "$CLIP_DB" "SELECT id FROM clipboard WHERE content = ?;" <<< "$content")
+            local pinned=$(sqlite3 "$CLIP_DB" "SELECT pinned FROM clipboard WHERE id = ?;" <<< "$id")
+            if [ "$pinned" = "1" ]; then
+                sqlite3 "$CLIP_DB" "UPDATE clipboard SET pinned = 0 WHERE id = ?;" <<< "$id"
+                notify-send "Clipboard" "Entry unpinned"
+            else
+                sqlite3 "$CLIP_DB" "UPDATE clipboard SET pinned = 1 WHERE id = ?;" <<< "$id"
+                notify-send "Clipboard" "Entry pinned"
+            fi
+            show_history
+            ;;
+        11)  # Alt+d - Delete
+            sqlite3 "$CLIP_DB" "DELETE FROM clipboard WHERE content = ?;" <<< "$content"
+            notify-send "Clipboard" "Entry deleted"
+            show_history
+            ;;
+        *)  # Copy to clipboard
+            echo -n "$content" | wl-copy
+            notify-send "Clipboard" "Copied to clipboard"
+            ;;
+    esac
+}
+
+# Clear history (keep pinned)
+clear_history() {
+    init_db
+    
+    local pinned_count=$(sqlite3 "$CLIP_DB" "SELECT COUNT(*) FROM clipboard WHERE pinned = 1;")
+    sqlite3 "$CLIP_DB" "DELETE FROM clipboard WHERE pinned = 0;"
+    
+    local deleted=$(sqlite3 "$CLIP_DB" "SELECT changes();")
+    notify-send "Clipboard" "Cleared $deleted entries (kept $pinned_count pinned)"
+}
+
+# Clear all (including pinned)
+clear_all() {
+    init_db
+    
+    sqlite3 "$CLIP_DB" "DELETE FROM clipboard;"
+    notify-send "Clipboard" "All history cleared"
+}
+
+# Watch clipboard (run as daemon)
+watch_clipboard() {
+    init_db
+    check_deps
+    
+    wl-paste --type text --watch bash -c '
+        content=$(cat)
+        script_path="'"$0"'"
+        "$script_path" store "$content" text
+    ' &
+    
+    wl-paste --type image --watch bash -c '
+        # Save image to file and store reference
+        timestamp=$(date +%s)
+        filename="$CLIP_DIR/image_$timestamp.png"
+        cat > "$filename"
+        script_path="'"$0"'"
+        "$script_path" store "$filename" image
+    ' &
+    
+    wait
+}
+
+# Search clipboard
+search_clipboard() {
+    init_db
+    check_deps
+    
+    local query="$1"
+    local results=$(sqlite3 "$CLIP_DB" << EOF
+SELECT 
+    CASE 
+        WHEN pinned = 1 THEN '📌 '
+        ELSE ''
+    END || 
+    substr(content, 1, 80) || 
+    CASE 
+        WHEN length(content) > 80 THEN '...'
+        ELSE ''
+    END as display
+FROM clipboard 
+WHERE content LIKE '%$query%'
+ORDER BY pinned DESC, timestamp DESC 
+LIMIT 50;
+EOF
+)
+    
+    echo "$results"
+}
+
+# Export history to file
+export_history() {
+    init_db
+    
+    local file="${1:-$HOME/clipboard-export.txt}"
+    sqlite3 "$CLIP_DB" "SELECT content FROM clipboard ORDER BY timestamp DESC;" > "$file"
+    echo "Exported to: $file"
+}
+
+# Show statistics
+show_stats() {
+    init_db
+    
+    local total=$(sqlite3 "$CLIP_DB" "SELECT COUNT(*) FROM clipboard;")
+    local pinned=$(sqlite3 "$CLIP_DB" "SELECT COUNT(*) FROM clipboard WHERE pinned = 1;")
+    local images=$(sqlite3 "$CLIP_DB" "SELECT COUNT(*) FROM clipboard WHERE content_type = 'image';")
+    local oldest=$(sqlite3 "$CLIP_DB" "SELECT timestamp FROM clipboard ORDER BY timestamp ASC LIMIT 1;")
+    
+    echo "Clipboard Statistics:"
+    echo "  Total entries: $total"
+    echo "  Pinned: $pinned"
+    echo "  Images: $images"
+    echo "  Oldest entry: $oldest"
+}
+
+# Main
+case "${1:-show}" in
+    show|menu)
+        show_history
+        ;;
+    store)
+        store_entry "$2" "${3:-text}"
+        ;;
+    clear)
+        clear_history
+        ;;
+    clear-all)
+        clear_all
+        ;;
+    watch)
+        watch_clipboard
+        ;;
+    search)
+        search_clipboard "$2"
+        ;;
+    export)
+        export_history "$2"
+        ;;
+    stats)
+        show_stats
+        ;;
+    *)
+        echo "Usage: $(basename "$0") {show|store|clear|clear-all|watch|search|export|stats}"
+        exit 1
+        ;;
+esac

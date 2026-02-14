@@ -1,0 +1,38 @@
+@import url("file:///home/mohammed/.cache/wallust/colors-waybar.css");
+
+* {
+    background-image: none;
+    box-shadow: none;
+}
+
+window {
+    background-color: rgba(0, 0, 0, 0.55);
+}
+
+button {
+    background-color: @background;
+    color: @foreground;
+
+    border-radius: 14px;
+    border: 2px solid @color8;
+
+    padding: 30px;
+    margin: 10px;
+
+    font-family: JetBrainsMono Font;
+    font-size: 16px;
+
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+    background-color: @color2;
+    color: @background;
+    border-color: @color2;
+}
+
+button:focus {
+    background-color: @color4;
+    color: @background;
+    border-color: @color4;
+}

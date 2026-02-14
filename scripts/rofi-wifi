@@ -1,0 +1,112 @@
+#!/bin/bash
+# Rofi WiFi Menu
+
+# Get list of available WiFi networks
+get_networks() {
+    nmcli -t -f SSID,SIGNAL,SECURITY dev wifi list --rescan yes 2>/dev/null | \
+    awk -F: '
+    NR>1 {
+        if ($1 != "" && $1 != "--") {
+            signal = $2
+            sec = $3
+            bars = ""
+            if (signal > 80) bars = "▂▄▆█"
+            else if (signal > 60) bars = "▂▄▆_"
+            else if (signal > 40) bars = "▂▄__"
+            else if (signal > 20) bars = "▂___"
+            else bars = "____"
+            
+            lock = (sec ~ /WPA/ || sec ~ /WEP/) ? "🔒" : "🔓"
+            
+            printf "%-25s %s %s\n", $1, bars, lock
+        }
+    }' | sort -u
+}
+
+# Get current connection
+get_current() {
+    nmcli -t -f NAME connection show --active 2>/dev/null | grep -v "^lo$" | head -n1
+}
+
+# Toggle WiFi
+toggle_wifi() {
+    status=$(nmcli radio wifi)
+    if [ "$status" = "enabled" ]; then
+        nmcli radio wifi off
+        notify-send "WiFi Disabled"
+    else
+        nmcli radio wifi on
+        notify-send "WiFi Enabled"
+    fi
+}
+
+# Main menu
+main() {
+    current=$(get_current)
+    wifi_status=$(nmcli radio wifi)
+    
+    # Build menu options
+    if [ "$wifi_status" = "enabled" ]; then
+        options="📡 Disable WiFi\n🔃 Rescan Networks"
+        if [ -n "$current" ]; then
+            options="📡 Disable WiFi\n🔗 Disconnect: $current\n🔃 Rescan Networks"
+        fi
+        
+        networks=$(get_networks)
+        if [ -n "$networks" ]; then
+            options="$options\n$networks"
+        fi
+    else
+        options="📡 Enable WiFi"
+    fi
+    
+    # Show rofi
+    chosen=$(echo -e "$options" | rofi -dmenu -i -p "WiFi" -theme-str 'window {width: 35%;}')
+    
+    # Exit if cancelled
+    [ -z "$chosen" ] && exit 0
+    
+    # Handle selection
+    case "$chosen" in
+        "📡 Disable WiFi"|"📡 Enable WiFi")
+            toggle_wifi
+            ;;
+        "🔃 Rescan Networks")
+            notify-send "Scanning WiFi networks..."
+            exec "$0"
+            ;;
+        "🔗 Disconnect: "*)
+            nmcli connection down "$current"
+            notify-send "Disconnected from $current"
+            ;;
+        *)
+            # Extract SSID from selection
+            ssid=$(echo "$chosen" | awk '{print $1}')
+            
+            # Check if network is secured
+            if echo "$chosen" | grep -q "🔒"; then
+                # Ask for password
+                password=$(rofi -dmenu -password -p "Password for $ssid" -theme-str 'window {width: 30%;}')
+                [ -z "$password" ] && exit 0
+                
+                # Connect with password
+                nmcli dev wifi connect "$ssid" password "$password"
+                if [ $? -eq 0 ]; then
+                    notify-send "Connected to $ssid"
+                else
+                    notify-send "Failed to connect to $ssid"
+                fi
+            else
+                # Connect without password
+                nmcli dev wifi connect "$ssid"
+                if [ $? -eq 0 ]; then
+                    notify-send "Connected to $ssid"
+                else
+                    notify-send "Failed to connect to $ssid"
+                fi
+            fi
+            ;;
+    esac
+}
+
+main "$@"

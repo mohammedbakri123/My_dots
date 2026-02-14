@@ -1,0 +1,40 @@
+#!/bin/bash
+# Rofi Power Menu
+
+options="🔒 Lock
+🚪 Logout
+💤 Suspend
+🔄 Reboot
+🛑 Shutdown"
+
+chosen=$(echo -e "$options" | rofi -dmenu -i -p "Power" -theme-str 'window {width: 15%;}')
+
+case "$chosen" in
+    "🔒 Lock")
+        hyprlock
+        ;;
+    "🚪 Logout")
+        confirm=$(echo -e "Yes\nNo" | rofi -dmenu -i -p "Confirm logout?" -theme-str 'window {width: 15%;}')
+        if [ "$confirm" = "Yes" ]; then
+            hyprctl dispatch exit
+        fi
+        ;;
+    "💤 Suspend")
+        confirm=$(echo -e "Yes\nNo" | rofi -dmenu -i -p "Confirm suspend?" -theme-str 'window {width: 15%;}')
+        if [ "$confirm" = "Yes" ]; then
+            systemctl suspend
+        fi
+        ;;
+    "🔄 Reboot")
+        confirm=$(echo -e "Yes\nNo" | rofi -dmenu -i -p "Confirm reboot?" -theme-str 'window {width: 15%;}')
+        if [ "$confirm" = "Yes" ]; then
+            systemctl reboot
+        fi
+        ;;
+    "🛑 Shutdown")
+        confirm=$(echo -e "Yes\nNo" | rofi -dmenu -i -p "Confirm shutdown?" -theme-str 'window {width: 15%;}')
+        if [ "$confirm" = "Yes" ]; then
+            systemctl poweroff
+        fi
+        ;;
+esac

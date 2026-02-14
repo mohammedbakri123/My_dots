@@ -1,0 +1,119 @@
+@import url("/home/mohammed/.cache/wallust/colors-waybar.css");
+
+/* Global */
+* {
+  font-family: JetBrains Mono, Symbols Nerd Font;
+  font-size: 14px;
+  border: none;
+  min-height: 0;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+window#waybar {
+  background: transparent;
+}
+
+/* Common module style */
+#custom-arch,
+#custom-datetime,
+#network,
+#bluetooth,
+#cpu,
+#battery,
+#custom-power,
+#hyprland-window,
+#workspaces,#custom-hour,
+#custom-minute {
+  background: @background;
+  padding: 10px 3px;
+  margin: 4px 0;
+  border-radius: 14px;
+  color: @color4;
+}
+
+
+/* Arch icon highlight */
+#custom-arch {
+  color: @color4;
+  font-size: 18px;
+}
+
+/* Window title */
+#hyprland-window {
+  color: @color2;
+  font-size: 12px;
+}
+
+/* Workspaces */
+#workspaces {
+  padding: 6px;
+}
+
+#workspaces button {
+  background: transparent;
+  color: @color3;
+  margin: 4px 0;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+#workspaces button.active {
+  background: @color3;
+  color: @background;
+}
+
+/* Hover effects */
+#custom-arch:hover,
+#network:hover,
+#bluetooth:hover,
+#cpu:hover,
+#battery:hover,
+#custom-power:hover {
+  background: @color4;
+  color: @background;
+}
+/* #workspaces button:hover {
+  background: @color2;
+  color: @background;
+}
+#taskbar button:hover {
+  background: @color2;
+  color: @background;
+} */
+/* Taskbar icons */
+#taskbar button {
+  padding: 6px;
+  background: transparent;
+  margin: 0 4px;
+}
+
+#custom-hour,
+#custom-minute {
+  font-family: JetBrains Mono;
+  background: @background;
+  color: @foreground;
+
+  padding: 2px 8px;
+  margin: 0;
+}
+
+/* Hour — dominant */
+#custom-hour {
+  font-size: 16px;
+  font-weight: 700;
+  padding-top: 8px;
+
+  border-radius: 14px 14px 0 0;
+}
+
+/* Minute — secondary */
+#custom-minute {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.75;
+  padding-bottom: 8px;
+
+  border-radius: 0 0 14px 14px;
+  margin-bottom: 6px;
+}
+

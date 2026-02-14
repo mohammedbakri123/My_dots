@@ -1,0 +1,127 @@
+#!/bin/bash
+# Auto-backup dotfiles to git repository
+
+set -e
+
+DOTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BACKUP_LOG="$HOME/.local/share/dotfiles-backup.log"
+
+mkdir -p "$(dirname "$BACKUP_LOG")"
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$BACKUP_LOG"
+}
+
+# Check if there are uncommitted changes
+check_changes() {
+    cd "$DOTS_DIR"
+    
+    # Check for modified files
+    if [ -n "$(git status --porcelain)" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Auto-commit changes
+backup_changes() {
+    cd "$DOTS_DIR"
+    
+    log "Starting backup..."
+    
+    # Add all changes
+    git add -A
+    
+    # Create commit with timestamp
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    git commit -m "Auto-backup: $timestamp" || {
+        log "No changes to backup"
+        return 0
+    }
+    
+    # Push to remote if configured
+    if git remote get-url origin &>/dev/null; then
+        git push origin $(git branch --show-current) || {
+            log "Failed to push to remote"
+            return 1
+        }
+        log "Backup pushed to remote"
+    else
+        log "Changes committed locally (no remote configured)"
+    fi
+    
+    log "Backup completed successfully"
+}
+
+# Show last backup status
+show_status() {
+    if [ -f "$BACKUP_LOG" ]; then
+        echo "Last 5 backups:"
+        tail -n 10 "$BACKUP_LOG"
+    else
+        echo "No backup history found"
+    fi
+    
+    cd "$DOTS_DIR"
+    echo
+    echo "Git status:"
+    git status --short
+}
+
+# Setup cron job for automatic backups
+setup_cron() {
+    local interval="${1:-hourly}"  # hourly, daily, weekly
+    
+    local cron_expr
+    case "$interval" in
+        hourly)
+            cron_expr="0 * * * *"
+            ;;
+        daily)
+            cron_expr="0 0 * * *"
+            ;;
+        weekly)
+            cron_expr="0 0 * * 0"
+            ;;
+        *)
+            echo "Invalid interval: $interval (use: hourly, daily, weekly)"
+            exit 1
+            ;;
+    esac
+    
+    # Add cron job
+    (crontab -l 2>/dev/null | grep -v "dotfiles-backup"; echo "$cron_expr $DOTS_DIR/scripts/dotfiles-backup backup") | crontab -
+    
+    log "Cron job added for $interval backups"
+}
+
+# Remove cron job
+remove_cron() {
+    crontab -l 2>/dev/null | grep -v "dotfiles-backup" | crontab -
+    log "Cron job removed"
+}
+
+# Main
+case "${1:-backup}" in
+    backup)
+        if check_changes; then
+            backup_changes
+        else
+            log "No changes to backup"
+        fi
+        ;;
+    status)
+        show_status
+        ;;
+    setup)
+        setup_cron "${2:-daily}"
+        ;;
+    remove)
+        remove_cron
+        ;;
+    *)
+        echo "Usage: $0 {backup|status|setup [hourly|daily|weekly]|remove}"
+        exit 1
+        ;;
+esac

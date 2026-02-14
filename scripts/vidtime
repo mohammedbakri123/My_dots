@@ -1,0 +1,33 @@
+#!/usr/bin/env fish
+
+if test (count $argv) -eq 0
+    set dir .
+else
+    set dir $argv[1]
+end
+
+if not test -d "$dir"
+    echo "Not a folder: $dir"
+    exit 1
+end
+
+set total 0
+set found 0
+
+# recursive search
+
+for f in (fd . "$dir" -e mp4 -e mkv -e avi -e webm)
+    set d (ffprobe -v error -show_entries format=duration -of csv=p=0 "$f")
+    set total (math "$total + $d")
+    set found 1
+end
+if test $found -eq 0
+    echo "No video files found."
+    exit 0
+end
+
+set hours (math "floor($total / 3600)")
+set minutes (math "floor(($total % 3600) / 60)")
+set seconds (math "floor($total % 60)")
+
+printf "Total: %02d:%02d:%02d\n" $hours $minutes $seconds

@@ -1,0 +1,127 @@
+{
+  "layer": "top",
+  "position": "left",
+  "width": 30,
+  "exclusive": true,
+
+  "margin-top": 10,
+  "margin-bottom": 10,
+  "margin-left": 8,
+
+  "modules-left": [
+    "custom/arch",
+     "custom/hour",
+  "custom/minute",
+    "hyprland/workspaces"
+  ],
+
+  "modules-center": [
+    "hyprland/window"
+  ],
+
+  "modules-right": [
+    "custom/powerprofile",
+    "network",
+    "bluetooth",
+    "cpu",
+    "battery",
+    "custom/power"
+  ],
+
+  "custom/arch": {
+    "format": "",
+    "on-click": "rofi -show drun",
+    "tooltip": false
+  },
+
+  // "custom/datetime": {
+  //   "exec": "date '+%H:%M'",
+  //   "interval": 30,
+  //   "tooltip": false
+  // },
+//   "custom/datetime": {
+//   "exec": "date '+%I:%M %p'",
+//   "interval": 30,
+//   "tooltip": true,
+//   "tooltip-format": "<big>%A</big>\n%d %B %Y"
+// }
+"custom/hour": {
+  "exec": "date '+%H'",
+  "interval": 30,
+  "tooltip": false
+},
+
+"custom/minute": {
+  "exec": "date '+%M'",
+  "interval": 30,
+  "tooltip": false,
+
+}
+
+
+  ,"hyprland/workspaces": {
+    "format": "{name}",
+    "persistent-workspaces": {
+      "*": [1, 2, 3, 4, 5]
+    }
+  },
+
+  "hyprland/window": {
+    "format": "{title}",
+    "max-length": 30,
+    "rotate": 90,
+    "tooltip": false
+  },
+
+  "custom/powerprofile": {
+    "exec": "powerprofilesctl get",
+    "interval": 5,
+    "format": "{icon}",
+    "format-icons": {
+      "performance": "󰓅",
+      "balanced": "󰾅",
+      "power-saver": "󰌪"
+    },
+    "on-click": "~/.config/waybar/scripts/powerprofile.sh"
+  },
+
+  "network": {
+    "format-wifi": "󰤨",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰤭",
+    "tooltip-format": "{essid} ({signalStrength}%)",
+    "on-click": "~/.config/waybar/scripts/wifi.sh"
+  },
+
+ "bluetooth": {
+    "format": "󰂯",
+    "format-connected": "󰂱",
+    "format-disabled": "󰂲",
+    "tooltip": false,
+    "on-click": "~/.config/waybar/scripts/bluetooth.sh"
+  },
+
+  "cpu": {
+    "interval": 3,
+    "format": "󰍛",
+    "on-click": "kitty --class waybar-popup --title btop btop"
+  },
+
+ "battery": {
+  "format": "{icon}",
+  "format-charging": "{icon} ⚡",
+  "tooltip": true,
+  "tooltip-format": "{capacity}%",
+  "format-icons": [
+    "󰁺","󰁻","󰁼","󰁽","󰁾",
+    "󰁿","󰂀","󰂁","󰂂","󰁹"
+  ]
+}
+,
+
+  "custom/power": {
+    "format": "󰐥",
+    "on-click": "wlogout"
+  }
+}
+  

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# kill any running instance (required)
+pkill -x hyprsunset 2>/dev/null
+sleep 0.1
+
+# apply new temperature
+hyprsunset -t "$1" &
+

@@ -1,0 +1,23 @@
+[templates]
+
+[templates.waybar]
+template = "waybar.css"
+target = "~/.cache/wallust/colors-waybar.css"
+
+[templates.rofi]
+template = "rofi.rasi"
+target = "~/.config/rofi/themes/colors.rasi"
+
+[templates.kitty]
+template = "kitty.conf"
+target = "~/.cache/wallust/colors-kitty.conf"
+
+
+
+[templates.hypr_hex]
+template = "hyprland.hex"
+target = "~/.cache/wallust/hyprland.hex"
+
+[templates.swaync]
+template = "colors.css"
+target = "~/.cache/wallust/colors-swaync.css"

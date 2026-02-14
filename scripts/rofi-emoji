@@ -1,0 +1,14 @@
+#!/bin/bash
+
+DIR="$HOME/.config/rofi-emoji"
+
+category=$(ls "$DIR" | sed 's/.txt//' | rofi -dmenu -i -p "Emoji Category")
+
+[ -z "$category" ] && exit 0
+
+choice=$(cat "$DIR/$category.txt" | rofi -dmenu -i -p "$category")
+
+emoji=$(echo "$choice" | awk '{print $1}')
+
+[ -n "$emoji" ] && printf "%s" "$emoji" | wl-copy
+
